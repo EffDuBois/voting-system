@@ -236,7 +236,6 @@ Result -
 
 ```
 
-This project was modified from https://github.com/Shantanugupta43/GEVS
 
 
 

@@ -129,6 +129,7 @@ app.post("/api/end-election", async (req, res) => {
 // Endpoint for user registration
 app.post("/api/register", async (req, res) => {
   try {
+    console.log("Trying register");
     const {
       email,
       fullName,
@@ -140,6 +141,7 @@ app.post("/api/register", async (req, res) => {
     } = req.body;
 
     // Check if the email exists in the voters table
+    console.log("email check");
     const [emailCheckRows, emailCheckFields] = await pool.execute(
       "SELECT * FROM voters WHERE voter_id = ?",
       [email]
@@ -147,13 +149,14 @@ app.post("/api/register", async (req, res) => {
 
     if (emailCheckRows.length > 0) {
       // Email is already used
+      console.log("email used already");
       return res
         .status(400)
         .json({
           message: "Email is already linked to another registered voter",
         });
     }
-
+console.log("uvc check");
     const [uvcRows, uvcFields] = await pool.execute(
       "SELECT * FROM uvc_code WHERE UVC = ? AND used = 0",
       [uvc]
@@ -161,9 +164,11 @@ app.post("/api/register", async (req, res) => {
 
     if (uvcRows.length === 1) {
       // UVC code is valid, mark it as used
+      console.log("uvc valid");
       await pool.execute("UPDATE uvc_code SET used = 1 WHERE UVC = ?", [uvc]);
 
       // Check if the provided constituency name exists in the database
+      console.log("constituency check");
       const [constituencyRows, constituencyFields] = await pool.execute(
         "SELECT constituency_id FROM constituency WHERE constituency_name = ?",
         [constituency]
@@ -171,12 +176,15 @@ app.post("/api/register", async (req, res) => {
 
       if (constituencyRows.length === 1) {
         // Constituency is valid, proceed with voter registration
+        console.log("valid constituency");
         const constituencyId = constituencyRows[0].constituency_id;
 
         // Hash the password before storing it
+        console.log("hashing pwd");
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Proceed with voter registration
+        console.log("inserting voter into db");
         await pool.execute(
           "INSERT INTO voters (voter_id, full_name, DOB, password, constituency_id, UVC) VALUES (?, ?, ?, ?, ?, ?)",
           [email, fullName, dateOfBirth, hashedPassword, constituencyId, uvc]
@@ -185,6 +193,7 @@ app.post("/api/register", async (req, res) => {
         return res.status(201).json({ message: "Registration successful" });
       } else {
         // Invalid constituency
+        console.log(`invalid constituency: ${constituency}`);
         return res.status(400).json({ message: "Invalid constituency" });
       }
     } else {

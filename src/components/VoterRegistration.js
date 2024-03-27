@@ -1,29 +1,34 @@
 // VoterRegistration.js
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { QrReader } from 'react-qr-reader';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { QrReader } from "react-qr-reader";
 
 const VoterRegistration = () => {
   const navigate = useNavigate();
 
-  const URL = process.env.REACT_APP_BACKEND_URL
+  const URL = process.env.REACT_APP_BACKEND_URL;
 
   const today = new Date();
-  const maxDOB = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const maxDOB = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  );
 
   const [formData, setFormData] = useState({
-    email: '',
-    fullName: '',
-    dateOfBirth: '',
-    password: '',
-    confirmPassword: '',
-    constituency: '',
-    uvc: '',
+    email: "",
+    fullName: "",
+    dateOfBirth: "",
+    password: "",
+    confirmPassword: "",
+    constituency: "",
+    uvc: "",
   });
 
-  const [passwordError, setPasswordError] = useState('');
-  const [uvcError, setUvcError] = useState('');
-  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState("");
+  const [uvcError, setUvcError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [constituencyError, setConstituencyError] = useState("");
 
   const [isCameraEnabled, setCameraEnabled] = useState(false);
 
@@ -39,15 +44,15 @@ const VoterRegistration = () => {
 
   const getConstituencyIdByTown = (town) => {
     switch (town) {
-      case 'Shangri-la-Town':
+      case "Shangri-la-Town":
         return 1;
-      case 'Northern-Kunlun-Mountain':
+      case "Northern-Kunlun-Mountain":
         return 2;
-      case 'Western-Shangri-la':
+      case "Western-Shangri-la":
         return 3;
-      case 'Naboo-Vallery':
+      case "Naboo-Vallery":
         return 4;
-      case 'New-Felucia':
+      case "New-Felucia":
         return 5;
       default:
         return null;
@@ -55,7 +60,7 @@ const VoterRegistration = () => {
   };
 
   useEffect(() => {
-    console.log('Updated UVC:', formData.uvc);
+    console.log("Updated UVC:", formData.uvc);
   }, [formData.uvc]);
 
   const handleEnableCamera = () => {
@@ -70,8 +75,8 @@ const VoterRegistration = () => {
     if (!!error) {
       console.info(error);
     } else {
-      console.log('Scanned QR Code:', result?.text);
-      setFormData({ ...formData, uvc: result?.text || '' });
+      console.log("Scanned QR Code:", result?.text);
+      setFormData({ ...formData, uvc: result?.text || "" });
     }
   };
 
@@ -80,51 +85,60 @@ const VoterRegistration = () => {
 
     // Check if password and confirm password match
     if (formData.password !== formData.confirmPassword) {
-      setPasswordError('Password and Confirm Password do not match.');
+      setPasswordError("Password and Confirm Password do not match.");
       return;
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
 
     try {
-
-
       const response = await fetch(`${URL}/api/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        console.log('Registration successful');
+        console.log("Registration successful");
 
         // Navigate to the login page after successful registration
-        navigate('/login');
-        alert('Registration successful! Login again to start voting.')
+        navigate("/login");
+        alert("Registration successful! Login again to start voting.");
       } else {
-        console.error('Registration failed:', response.statusText);
+        console.error("Registration failed:", response.statusText);
         if (response.status === 400) {
           const responseData = await response.json();
-          if (responseData.message === 'Invalid UVC code or already used') {
-            setUvcError('Invalid UVC code or already used. Please check your information.');
-          } else if (responseData.message === 'Email is already linked to another registered voter') {
-            setEmailError('Email is already linked to another registered voter');
+          if (responseData.message === "Invalid UVC code or already used") {
+            setUvcError(
+              "Invalid UVC code or already used. Please check your information."
+            );
+          } else if (
+            responseData.message ===
+            "Email is already linked to another registered voter"
+          ) {
+            setEmailError(
+              "Email is already linked to another registered voter"
+            );
+          } else if (responseData.message === "Invalid constituency") {
+            setConstituencyError("Invalid constituency");
           } else {
-            setUvcError('UVC validation failed. Please check your information.');
+            setUvcError("Please check your information.");
           }
 
           // Check if it's a UVC error and handle accordingly
           if (responseData.uvcError) {
-            setUvcError('Invalid UVC code or already used. Please check your information.');
+            setUvcError(
+              "Invalid UVC code or already used. Please check your information."
+            );
           }
         } else {
-          alert('Registration failed. Please check your information.');
+          alert("Registration failed. Please check your information.");
         }
       }
     } catch (error) {
-      console.error('Error during registration:', error.message);
+      console.error("Error during registration:", error.message);
     }
   };
 
@@ -143,7 +157,7 @@ const VoterRegistration = () => {
             onChange={handleChange}
             required
           />
-          {emailError && <p style={{ color: 'red' }}>{emailError}</p>}
+          {emailError && <p style={{ color: "red" }}>{emailError}</p>}
         </div>
         <div>
           <label htmlFor="fullName">Full Name:</label>
@@ -164,7 +178,7 @@ const VoterRegistration = () => {
             name="dateOfBirth"
             value={formData.dateOfBirth}
             onChange={handleChange}
-            max={maxDOB.toISOString().split('T')[0]}
+            max={maxDOB.toISOString().split("T")[0]}
             required
           />
         </div>
@@ -189,7 +203,7 @@ const VoterRegistration = () => {
             onChange={handleChange}
             required
           />
-          {passwordError && <p style={{ color: 'red' }}>{passwordError}</p>}
+          {passwordError && <p style={{ color: "red" }}>{passwordError}</p>}
         </div>
         <div>
           <label htmlFor="constituency">Constituency:</label>
@@ -210,7 +224,9 @@ const VoterRegistration = () => {
             <option value="New-Felucia">Indiranagar</option>
           </select>
         </div>
-
+        {constituencyError && (
+          <p style={{ color: "red" }}>{constituencyError}</p>
+        )}
         <div>
           <label htmlFor="uvc">Unique Voter Code (UVC):</label>
           <input
@@ -221,9 +237,13 @@ const VoterRegistration = () => {
             onChange={handleChange}
             required
           />
-          {uvcError && <p style={{ color: 'red' }}>{uvcError}</p>}
+          {uvcError && <p style={{ color: "red" }}>{uvcError}</p>}
           {isCameraEnabled && (
-            <QrReader delay={200} onResult={onResult} style={{ width: '30%' }} />
+            <QrReader
+              delay={200}
+              onResult={onResult}
+              style={{ width: "30%" }}
+            />
           )}
         </div>
 
@@ -231,13 +251,16 @@ const VoterRegistration = () => {
           Enable Camera
         </button>
         <button type="button" onClick={handleDisableCamera}>
-            Disable Camera
+          Disable Camera
         </button>
         <button type="submit">Register</button>
       </form>
 
       <p>
-        Already registered? <Link to="/login" className="snippetlogin">Login here</Link>
+        Already registered?{" "}
+        <Link to="/login" className="snippetlogin">
+          Login here
+        </Link>
       </p>
     </div>
   );
